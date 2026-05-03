@@ -1,73 +1,31 @@
-# React + TypeScript + Vite
+# Broad Street Run Analyzer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Drop a Strava GPX export of your Broad Street Run, see your race broken down by pace zone (cruising / jogging / walking / stopped), and stack last year's run next to this year's for a side-by-side comparison.
 
-Currently, two official plugins are available:
+**→ [themightychris.github.io/bsr-analyzer](https://themightychris.github.io/bsr-analyzer/)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Everything runs in the browser. Your GPX never leaves your machine.
 
-## React Compiler
+## What it does
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Drag-and-drop a `.gpx` file** to load a run. Drop a second one to compare.
+- **Pace segmentation** with sensible defaults for a decent recreational runner:
+  - Cruising — under 9:00 / mi
+  - Jogging — 9:00 to 11:30 / mi
+  - Walking — slower than 11:30 / mi
+  - Stopped — under 0.5 m/s (water stations, congestion, etc.)
+- **Editable thresholds** at the top of the page, persisted to localStorage.
+- **Tall narrow MapLibre map** that matches the shape of the route — Broad Street is a 10-mile straight shot south through Philadelphia.
+- **Smoothed speeds** with a guard for Strava's smart-recording sample gaps so brief telemetry hiccups don't get classified as stops.
+- **Comparison panel** in the middle when two runs are loaded: total time, distance, pace, moving time, HR, and per-category time deltas. Older run goes on the left, newer on the right, regardless of upload order.
 
-## Expanding the ESLint configuration
+## Run it locally
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+bun install
+bun run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deploy
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Pushes to `main` build with Bun and publish to GitHub Pages via `.github/workflows/pages.yml`. Repo settings → Pages must be set to "GitHub Actions" as the source.
