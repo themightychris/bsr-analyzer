@@ -7,17 +7,22 @@ import {
   formatDuration,
   formatMiles,
   formatPace,
+  viewFor,
 } from '../lib/pace'
 
 type Props = {
   a: Analysis
   b: Analysis
+  excludeStopped: boolean
 }
 
-export function ComparisonPanel({ a, b }: Props) {
+export function ComparisonPanel({ a, b, excludeStopped }: Props) {
   // Older run is baseline, newer run is current. Deltas describe the change
   // from baseline to current, so the arrow direction matches the sign.
   const [baseline, current] = a.gpx.startTime <= b.gpx.startTime ? [a, b] : [b, a]
+  const cv = viewFor(current, excludeStopped)
+  const bv = viewFor(baseline, excludeStopped)
+  const visibleCats = excludeStopped ? PACE_ORDER.filter((c) => c !== 'stopped') : PACE_ORDER
   return (
     <div className="flex h-full w-[200px] shrink-0 flex-col gap-3 rounded-2xl bg-neutral-950/40 p-3 ring-1 ring-white/5">
       <div className="text-center">
@@ -28,25 +33,31 @@ export function ComparisonPanel({ a, b }: Props) {
       </div>
 
       <DeltaRow
-        label="Total time"
-        primary={formatDuration(current.totalDurationSec)}
-        delta={renderDuration(current.totalDurationSec - baseline.totalDurationSec, true)}
+        label={excludeStopped ? 'Moving time' : 'Total time'}
+        primary={formatDuration(cv.durationSec)}
+        delta={renderDuration(cv.durationSec - bv.durationSec, true)}
       />
       <DeltaRow
         label="Distance"
-        primary={`${formatMiles(current.totalDistanceM)} mi`}
-        delta={renderMilesDelta(current.totalDistanceM - baseline.totalDistanceM)}
+        primary={`${formatMiles(cv.distanceM)} mi`}
+        delta={renderMilesDelta(cv.distanceM - bv.distanceM)}
       />
       <DeltaRow
         label="Avg pace"
-        primary={`${formatPace(current.avgPaceMinPerMile)} / mi`}
-        delta={renderPaceDelta(current.avgPaceMinPerMile - baseline.avgPaceMinPerMile)}
+        primary={`${formatPace(cv.paceMinPerMile)} / mi`}
+        delta={renderPaceDelta(cv.paceMinPerMile - bv.paceMinPerMile)}
       />
-      <DeltaRow
-        label="Moving time"
-        primary={formatDuration(current.movingDurationSec)}
-        delta={renderDuration(current.movingDurationSec - baseline.movingDurationSec, true)}
-      />
+      {!excludeStopped && (
+        <DeltaRow
+          label="Stopped time"
+          primary={formatDuration(current.totalsByCategory.stopped.durationSec)}
+          delta={renderDuration(
+            current.totalsByCategory.stopped.durationSec -
+              baseline.totalsByCategory.stopped.durationSec,
+            true,
+          )}
+        />
+      )}
       {current.avgHr != null && baseline.avgHr != null && (
         <DeltaRow
           label="Avg HR"
@@ -58,7 +69,7 @@ export function ComparisonPanel({ a, b }: Props) {
       <div className="mt-1 border-t border-white/5 pt-3">
         <div className="mb-2 text-xs uppercase tracking-wider text-neutral-400">By pace</div>
         <div className="space-y-1.5">
-          {PACE_ORDER.map((cat) => {
+          {visibleCats.map((cat) => {
             const cur = current.totalsByCategory[cat]
             const base = baseline.totalsByCategory[cat]
             const lowerIsBetter = cat === 'stopped' || cat === 'walking'

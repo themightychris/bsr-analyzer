@@ -7,16 +7,19 @@ import {
   formatDuration,
   formatMiles,
   formatPace,
+  viewFor,
 } from '../lib/pace'
 
 type Props = {
   analysis: Analysis
   thresholds: PaceThresholds
+  excludeStopped: boolean
 }
 
-export function StatsPanel({ analysis, thresholds }: Props) {
-  const totalSec = analysis.totalDurationSec
+export function StatsPanel({ analysis, thresholds, excludeStopped }: Props) {
+  const view = viewFor(analysis, excludeStopped)
   const descriptions = describeThresholds(thresholds)
+  const visibleCats = excludeStopped ? PACE_ORDER.filter((c) => c !== 'stopped') : PACE_ORDER
   return (
     <div className="space-y-4">
       <div>
@@ -29,10 +32,15 @@ export function StatsPanel({ analysis, thresholds }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <Stat label="Distance" value={`${formatMiles(analysis.totalDistanceM)} mi`} />
-        <Stat label="Total time" value={formatDuration(analysis.totalDurationSec)} />
-        <Stat label="Avg pace" value={`${formatPace(analysis.avgPaceMinPerMile)} / mi`} />
-        <Stat label="Moving time" value={formatDuration(analysis.movingDurationSec)} />
+        <Stat label="Distance" value={`${formatMiles(view.distanceM)} mi`} />
+        <Stat
+          label={excludeStopped ? 'Moving time' : 'Total time'}
+          value={formatDuration(view.durationSec)}
+        />
+        <Stat label="Avg pace" value={`${formatPace(view.paceMinPerMile)} / mi`} />
+        {!excludeStopped && (
+          <Stat label="Stopped time" value={formatDuration(analysis.totalsByCategory.stopped.durationSec)} />
+        )}
         {analysis.avgHr != null && (
           <Stat label="Avg HR" value={`${Math.round(analysis.avgHr)} bpm`} />
         )}
@@ -42,11 +50,15 @@ export function StatsPanel({ analysis, thresholds }: Props) {
       </div>
 
       <div>
-        <div className="mb-2 text-xs uppercase tracking-wider text-neutral-400">Time by pace</div>
+        <div className="mb-2 text-xs uppercase tracking-wider text-neutral-400">
+          {excludeStopped ? 'Moving time by pace' : 'Time by pace'}
+        </div>
         <div className="flex h-2 w-full overflow-hidden rounded bg-neutral-800">
-          {PACE_ORDER.map((cat) => {
+          {visibleCats.map((cat) => {
             const pct =
-              totalSec > 0 ? (analysis.totalsByCategory[cat].durationSec / totalSec) * 100 : 0
+              view.durationSec > 0
+                ? (analysis.totalsByCategory[cat].durationSec / view.durationSec) * 100
+                : 0
             return (
               <div
                 key={cat}
@@ -57,9 +69,9 @@ export function StatsPanel({ analysis, thresholds }: Props) {
           })}
         </div>
         <div className="mt-3 space-y-2">
-          {PACE_ORDER.map((cat) => {
+          {visibleCats.map((cat) => {
             const t = analysis.totalsByCategory[cat]
-            const pct = totalSec > 0 ? (t.durationSec / totalSec) * 100 : 0
+            const pct = view.durationSec > 0 ? (t.durationSec / view.durationSec) * 100 : 0
             return (
               <div key={cat} className="flex items-baseline gap-3">
                 <span

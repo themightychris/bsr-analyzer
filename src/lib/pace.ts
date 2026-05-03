@@ -54,6 +54,30 @@ function paceMinPerMile(metersPerSec: number): number {
   return METERS_PER_MILE / metersPerSec / 60
 }
 
+export type DisplayView = {
+  durationSec: number
+  distanceM: number
+  paceMinPerMile: number
+}
+
+export function viewFor(analysis: Analysis, excludeStopped: boolean): DisplayView {
+  if (excludeStopped) {
+    const stopped = analysis.totalsByCategory.stopped
+    const durationSec = analysis.totalDurationSec - stopped.durationSec
+    const distanceM = analysis.totalDistanceM - stopped.distanceM
+    return {
+      durationSec,
+      distanceM,
+      paceMinPerMile: durationSec > 0 ? paceMinPerMile(distanceM / durationSec) : Infinity,
+    }
+  }
+  return {
+    durationSec: analysis.totalDurationSec,
+    distanceM: analysis.totalDistanceM,
+    paceMinPerMile: analysis.avgPaceMinPerMile,
+  }
+}
+
 function categoryFromSpeed(metersPerSec: number, t: PaceThresholds): PaceCategory {
   if (metersPerSec < t.stoppedSpeedMps) return 'stopped'
   const pace = paceMinPerMile(metersPerSec)

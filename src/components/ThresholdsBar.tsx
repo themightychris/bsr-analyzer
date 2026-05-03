@@ -13,6 +13,8 @@ type Props = {
   thresholds: PaceThresholds
   onChange: (next: PaceThresholds) => void
   onReset: () => void
+  excludeStopped: boolean
+  onExcludeStoppedChange: (next: boolean) => void
 }
 
 type Field =
@@ -25,7 +27,13 @@ const FIELDS: Field[] = [
   { kind: 'speed', key: 'stoppedSpeedMps', label: 'under', cat: 'stopped' },
 ]
 
-export function ThresholdsBar({ thresholds, onChange, onReset }: Props) {
+export function ThresholdsBar({
+  thresholds,
+  onChange,
+  onReset,
+  excludeStopped,
+  onExcludeStoppedChange,
+}: Props) {
   const isDefault =
     JSON.stringify(thresholds) === JSON.stringify(DEFAULT_THRESHOLDS)
 
@@ -39,11 +47,20 @@ export function ThresholdsBar({ thresholds, onChange, onReset }: Props) {
           onCommit={(next) => onChange({ ...thresholds, [f.key]: next })}
         />
       ))}
+      <label className="ml-auto flex cursor-pointer items-center gap-1.5 rounded-md bg-neutral-900/60 px-2 py-1 text-xs text-neutral-300 ring-1 ring-white/5 hover:text-white">
+        <input
+          type="checkbox"
+          checked={excludeStopped}
+          onChange={(e) => onExcludeStoppedChange(e.target.checked)}
+          className="h-3 w-3 accent-emerald-400"
+        />
+        Exclude stopped time from metrics
+      </label>
       {!isDefault && (
         <button
           type="button"
           onClick={onReset}
-          className="ml-auto rounded-md px-2 py-1 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-white"
+          className="rounded-md px-2 py-1 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-white"
         >
           Reset
         </button>

@@ -5,7 +5,7 @@ import { RunPanel } from './components/RunPanel'
 import { ThresholdsBar } from './components/ThresholdsBar'
 import { parseGpx, type ParsedGpx } from './lib/gpx'
 import { analyze, type Analysis } from './lib/pace'
-import { useThresholds } from './lib/thresholds'
+import { useDisplayOptions, useThresholds } from './lib/thresholds'
 
 type Slot = 'primary' | 'compare'
 
@@ -15,6 +15,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [pendingFor, setPendingFor] = useState<Slot | null>(null)
   const [thresholds, setThresholds, resetThresholds] = useThresholds()
+  const [options, setOptions] = useDisplayOptions()
 
   const primary = useMemo<Analysis | null>(
     () => (primaryGpx ? analyze(primaryGpx, thresholds) : null),
@@ -56,6 +57,8 @@ export default function App() {
           thresholds={thresholds}
           onChange={setThresholds}
           onReset={resetThresholds}
+          excludeStopped={options.excludeStopped}
+          onExcludeStoppedChange={(v) => setOptions({ ...options, excludeStopped: v })}
         />
       </header>
 
@@ -100,17 +103,23 @@ export default function App() {
                       onClear={left.clear}
                       badge={left.loading ? 'Loading…' : labelYear(left.analysis.gpx.startTime)}
                       thresholds={thresholds}
+                      excludeStopped={options.excludeStopped}
                     />
                   </div>
                   {right ? (
                     <>
-                      <ComparisonPanel a={left.analysis} b={right.analysis} />
+                      <ComparisonPanel
+                        a={left.analysis}
+                        b={right.analysis}
+                        excludeStopped={options.excludeStopped}
+                      />
                       <div className="flex-1 min-w-0">
                         <RunPanel
                           analysis={right.analysis}
                           onClear={right.clear}
                           badge={right.loading ? 'Loading…' : labelYear(right.analysis.gpx.startTime)}
                           thresholds={thresholds}
+                          excludeStopped={options.excludeStopped}
                         />
                       </div>
                     </>
