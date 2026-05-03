@@ -20,9 +20,9 @@ type Field =
   | { kind: 'speed'; key: keyof PaceThresholds; label: string; cat: PaceCategory }
 
 const FIELDS: Field[] = [
-  { kind: 'pace', key: 'cruisingMaxPaceMinPerMile', label: 'Cruising under', cat: 'cruising' },
-  { kind: 'pace', key: 'joggingMaxPaceMinPerMile', label: 'Jogging under', cat: 'jogging' },
-  { kind: 'speed', key: 'stoppedSpeedMps', label: 'Stopped under', cat: 'stopped' },
+  { kind: 'pace', key: 'cruisingMaxPaceMinPerMile', label: 'under', cat: 'cruising' },
+  { kind: 'pace', key: 'joggingMaxPaceMinPerMile', label: 'under', cat: 'jogging' },
+  { kind: 'speed', key: 'stoppedSpeedMps', label: 'under', cat: 'stopped' },
 ]
 
 export function ThresholdsBar({ thresholds, onChange, onReset }: Props) {
@@ -90,7 +90,7 @@ function ThresholdField({
         style={{ background: PACE_COLORS[field.cat] }}
       />
       <span className="text-neutral-400">
-        {field.label} <span className="text-white">{PACE_LABELS[field.cat]}</span>
+        <span className="text-white">{PACE_LABELS[field.cat]}</span> {field.label}
       </span>
       <input
         type="text"
