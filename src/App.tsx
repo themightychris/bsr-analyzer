@@ -48,6 +48,9 @@ export default function App() {
           <p className="text-xs text-neutral-400">
             Drop a Strava GPX to break your run down by pace · 10-mile straight shot down Broad
           </p>
+          <p className="mt-1 text-xs text-emerald-400/80">
+            Your GPX is analyzed in your browser — nothing is uploaded to any server.
+          </p>
         </div>
         <ThresholdsBar
           thresholds={thresholds}
